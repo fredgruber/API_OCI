@@ -1,0 +1,71 @@
+-- Criação da Tabela CLIENTES
+CREATE TABLE CLIENTES (
+    CPF VARCHAR2(14) PRIMARY KEY,
+    NOME VARCHAR2(100) NOT NULL,
+    INVESTIMENTO VARCHAR2(50),
+    VALOR NUMBER(15, 2),
+    STATUS CHAR(1) DEFAULT 'D' CHECK (STATUS IN ('D', 'B')) -- D: Desbloqueado, B: Bloqueado
+);
+
+-- Inserção de dados de exemplo (Opcional)
+INSERT INTO CLIENTES (CPF, NOME, INVESTIMENTO, VALOR, STATUS) VALUES ('12345678901', 'Joao Silva', 'CDB', 10000.00, 'D');
+INSERT INTO CLIENTES (CPF, NOME, INVESTIMENTO, VALOR, STATUS) VALUES ('98765432100', 'Maria Souza', 'LCI', 25000.50, 'B');
+COMMIT;
+
+-- Criação da Specification da Package
+CREATE OR REPLACE PACKAGE PKG_CLIENTES AS
+    TYPE T_CURSOR IS REF CURSOR;
+    
+    -- Procedure para consultar clientes
+    PROCEDURE PRC_CONSULTAR_CLIENTES(
+        P_CURSOR OUT T_CURSOR
+    );
+
+    -- Procedure para bloquear cliente
+    PROCEDURE PRC_BLOQUEAR_CLIENTE(
+        P_CPF IN VARCHAR2
+    );
+
+    -- Procedure para desbloquear cliente
+    PROCEDURE PRC_DESBLOQUEAR_CLIENTE(
+        P_CPF IN VARCHAR2
+    );
+END PKG_CLIENTES;
+/
+
+-- Criação do Body da Package
+CREATE OR REPLACE PACKAGE BODY PKG_CLIENTES AS
+
+    PROCEDURE PRC_CONSULTAR_CLIENTES(
+        P_CURSOR OUT T_CURSOR
+    ) IS
+    BEGIN
+        OPEN P_CURSOR FOR
+            SELECT CPF, NOME, INVESTIMENTO, VALOR, STATUS
+            FROM CLIENTES;
+    END PRC_CONSULTAR_CLIENTES;
+
+    PROCEDURE PRC_BLOQUEAR_CLIENTE(
+        P_CPF IN VARCHAR2
+    ) IS
+    BEGIN
+        UPDATE CLIENTES
+        SET STATUS = 'B'
+        WHERE CPF = P_CPF;
+        
+        COMMIT;
+    END PRC_BLOQUEAR_CLIENTE;
+
+    PROCEDURE PRC_DESBLOQUEAR_CLIENTE(
+        P_CPF IN VARCHAR2
+    ) IS
+    BEGIN
+        UPDATE CLIENTES
+        SET STATUS = 'D'
+        WHERE CPF = P_CPF;
+        
+        COMMIT;
+    END PRC_DESBLOQUEAR_CLIENTE;
+
+END PKG_CLIENTES;
+/
