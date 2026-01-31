@@ -9,6 +9,7 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/src/main/resources/wallet /app/wallet
 
 # Expõe a porta padrão do Spring Boot
 EXPOSE 8080
